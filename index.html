@@ -680,6 +680,26 @@
     color:var(--ink) !important; box-shadow:var(--shadow) !important;}
   .punch b{color:var(--accent-deep) !important;}
 
+  /* 「连接 GitHub」面板 */
+  .cloudbox{display:none; position:sticky; top:44px; z-index:49; max-width:880px;
+    margin:10px auto 0; background:var(--paper); border:1px solid var(--line);
+    border-radius:14px; padding:16px 18px; box-shadow:var(--shadow-lift);}
+  .cloudbox.on{display:block;}
+  .cloudbox .cb-t{font-family:var(--serif); font-weight:900; font-size:15.5px; color:var(--ink);
+    margin-bottom:6px;}
+  .cloudbox p{font-size:12.5px; line-height:1.7; color:var(--ink-soft); margin-bottom:10px;}
+  .cloudbox p b{color:var(--accent-deep);}
+  .cloudbox input{width:100%; font-family:var(--sans); font-size:13px; padding:9px 12px;
+    border:1px solid var(--line); border-radius:9px; background:#fffdf8; color:var(--ink);}
+  .cloudbox .cb-btns{display:flex; gap:8px; margin-top:10px;}
+  .cloudbox button{font-family:var(--sans); cursor:pointer; border:none; font-size:12.5px;
+    font-weight:600; color:#fff; background:linear-gradient(135deg,var(--accent),var(--accent-deep));
+    border-radius:9px; padding:8px 16px;}
+  .cloudbox button.ghost{background:transparent; color:var(--muted); border:1px solid var(--line);}
+  .cloudbox .cb-msg{font-size:12.5px; margin-top:9px; min-height:17px; color:var(--ink-soft);}
+  .cloudbox .cb-msg.ok{color:#3a5631;} .cloudbox .cb-msg.err{color:var(--accent-deep);}
+  @media print{ .cloudbox{display:none !important;} }
+
   /* 两图并排 */
   .figrow{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:20px; align-items:start;}
   .figrow .figimg{margin-top:0;}
@@ -815,31 +835,42 @@
   <span class="tb-btns">
     <button id="btnReset" class="ghost" onclick="resetEdit()" style="display:none;">↺ 还原默认</button>
     <button id="btnExport" class="ghost" onclick="exportEdited()">⬇️ 导出 HTML</button>
+    <button id="btnCloud" class="ghost" onclick="toggleCloud()">☁️ 连接 GitHub</button>
     <button id="btnEdit" onclick="toggleEdit()">✏️ 编辑文字</button>
     <button onclick="window.print()">⤓ 保存 / 打印 PDF</button>
   </span>
 </div>
 
+<div class="cloudbox" id="cloudbox">
+  <div class="cb-t">把修改自动发布到线上</div>
+  <p>连接后，你每次改完文字会<b>自动提交到 GitHub</b>，线上约 1 分钟后生效，别人刷新就能看到新版本。<br>
+     Token 只存在<b>这台电脑的浏览器</b>里，不会写进网页文件、也不会提交到仓库。别人打开这个网址看不到、也用不了。</p>
+  <input type="password" id="ghTok" placeholder="粘贴 GitHub Token（github_pat_… 或 ghp_…）" autocomplete="off">
+  <div class="cb-btns">
+    <button onclick="cloudConnect()">连接</button>
+    <button class="ghost" onclick="cloudClear()">断开并清除 Token</button>
+  </div>
+  <div class="cb-msg" id="cbMsg"></div>
+</div>
+
 <div class="edit-tip">✏️ 编辑模式已开启 —— 点任意文字即可直接修改，改动会自动保存在本浏览器。改完点「✅ 完成编辑」，或「↺ 还原默认」恢复原稿。</div>
 
 <div class="wrap">
-
-  <!-- ════════════════════════ 封面 ════════════════════════ -->
+<!-- ════════════════════════ 封面 ════════════════════════ -->
   <header class="cover">
     <div class="cover-text">
       <div class="kick">
         <img class="brandmark" src="assets/gma-logo.png" alt="GMA">
-        <span class="ln"></span>
-        <span class="biz">Global Market Accelerator · 业务介绍总册 · 2026.08 第四版</span>
+        <span class="biz"><br>Global Market Accelerator&nbsp;</span>
       </div>
-      <h1>品牌海外<em>市场进入与增长</em></h1>
-      <p class="cover-en">GMA Brand Global Expansion ｜ Validate · Enter · Grow</p>
-      <p class="sub"><b>别急着全面出海。在真正下场之前，先拿到真实答案。</b><br>
+      <h1>品牌海外<em>市场进入&amp;增长</em></h1>
+      <p class="cover-en">Brand Global Expansion ｜ Validate · Enter · Grow</p>
+      <p class="sub"><b>别急着全面出海。在下场之前，先拿到真实答案。</b><br>
         从<strong>市场验证</strong>、<strong>渠道精准连接</strong>，到<strong>本地化稳步落地</strong>，为品牌 / 企业主 / 创业者提供一条<b>低风险、高转化、可持续增长</b>的海外增长路径。</p>
       <div class="cover-meta">
-        <span class="pill"><b>01</b> VALIDATE 市场验证</span>
-        <span class="pill"><b>02</b> ENTER 精准进入</span>
-        <span class="pill"><b>03</b> GROW 本地增长</span>
+        <span class="pill"><b>01</b>市场验证</span>
+        <span class="pill"><b>02&nbsp;<span style="color: rgb(74, 64, 52); font-weight: 500;">精准进入</span></b></span>
+        <span class="pill"><b>03</b>&nbsp;本地增长</span>
       </div>
     </div>
     <div class="cover-art">
@@ -851,46 +882,38 @@
   <!-- ════════════════════════ 01 · 我们解决什么问题 ════════════════════════ -->
   <section class="section" id="problem">
     <div class="sec-kicker"><span class="sec-no">01</span><span class="ln"></span><span class="en-tag">The problem</span></div>
-    <h2>许多品牌进入新市场，都会撞上<em>三个致命卡点</em></h2>
-    <p class="lead">出海失败极少败在产品本身，多半败在"没拿到真实答案就先投入"。这三件事，几乎每个品牌都遇到过。</p>
+    <h2>许多品牌进入新市场的<em>三个致命卡点</em></h2>
 
     <div class="why" style="grid-template-columns:repeat(3,1fr);">
       <div class="v">
-        <span class="ic">🎲</span>
-        <h3>盲目判断市场</h3>
+        <span class="ic">🎲<span style="font-family: &quot;Noto Serif SC&quot;, serif; font-size: 15.5px; font-weight: 700; background-color: initial;">盲目判断市场</span></span>
         <div class="painq">"当地消费者真的会买吗？买的究竟是设计、材质，还是品牌故事？"</div>
       </div>
       <div class="v">
-        <span class="ic">🔌</span>
-        <h3>渠道错位错失</h3>
+        <span class="ic">🔌<span style="font-family: &quot;Noto Serif SC&quot;, serif; font-size: 15.5px; font-weight: 700; background-color: initial;">渠道错位错失</span></span>
         <div class="painq">"认识了不少海外从业者，却没有真正能帮我实现销售与上架的渠道。"</div>
       </div>
       <div class="v">
-        <span class="ic">💸</span>
-        <h3>营销陷阱</h3>
+        <span class="ic">💸<span style="font-family: &quot;Noto Serif SC&quot;, serif; font-size: 15.5px; font-weight: 700; background-color: initial;">营销陷阱</span></span>
         <div class="painq">"投了广告，办了活动，有了短期的曝光，但不知道下一步该追加、调整还是无痛退出。"</div>
       </div>
     </div>
 
     <div class="corepos">
-      <span class="lab">Our Core Belief</span>
-      <p><b>我们的核心主张：</b>我们不建议品牌在充满不确定性时就"全面赌注式进入"。<b>先用最小成本验证，拿到真实销售与数据，再决定增长策略。</b></p>
-    </div>
-
-    <p class="lead" style="margin-top:20px;">GMA 围绕品牌不同出海阶段，提供从<strong>市场验证</strong>、<strong>精准进入</strong>到<strong>本地增长</strong>的完整路径，帮助品牌更有依据地进入并持续经营海外市场。</p>
+      <span class="lab"><b style="background-color: rgba(0, 0, 0, 0); font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif; font-size: 16px;">核心主张</b></span>
+      <p>我们不建议品牌在充满不确定时就"赌注式进入"。<b>先用最小成本验证，拿到真实销售与数据，再决定增长策略。</b></p></div>
   </section>
 
   <!-- ════════════════════════ 02 · 三阶段服务全景 ════════════════════════ -->
   <section class="section" id="overview">
     <div class="sec-kicker"><span class="sec-no">02</span><span class="ln"></span><span class="en-tag">Service map</span></div>
     <h2>三阶段<em>服务全景</em></h2>
-    <p class="lead">你在哪个阶段，就从哪个阶段开始。三段可以连着走，也可以单独用。</p>
+    <p class="lead">GMA 围绕品牌不同出海阶段，提供从<span style="color: rgb(34, 28, 20); font-weight: 700;">市场验证</span>、<span style="color: rgb(34, 28, 20); font-weight: 700;">精准进入</span>到<span style="color: rgb(34, 28, 20); font-weight: 700;">本地增长</span>的完整路径，帮助品牌更有依据地进入并持续经营海外市场。你在哪个阶段，就从哪个阶段开始。</p>
 
     <div class="flow">
       <div class="stage">
         <div class="ph">01</div>
-        <h3>VALIDATE 市场验证</h3>
-        <span class="stn">Validate before you invest</span>
+        <h3>市场验证</h3>
         <ul>
           <li>进入前市场扫描</li>
           <li>真实市场测试</li>
@@ -899,8 +922,7 @@
       </div>
       <div class="stage">
         <div class="ph">02</div>
-        <h3>ENTER 精准进入</h3>
-        <span class="stn">From market fit to market landing</span>
+        <h3>精准进入</h3>
         <ul>
           <li>本地化适配</li>
           <li>渠道匹配与买手对接</li>
@@ -909,8 +931,7 @@
       </div>
       <div class="stage">
         <div class="ph">03</div>
-        <h3>GROW 本地增长</h3>
-        <span class="stn">Grow &amp; operate locally</span>
+        <h3>本地增长</h3>
         <ul>
           <li>本地营销与 DTC</li>
           <li>渠道增长与 BD</li>
@@ -931,19 +952,19 @@
         </thead>
         <tbody>
           <tr>
-            <th>VALIDATE<br>市场验证</th>
+            <th>市场验证</th>
             <td>尚未进入 / 准备进入新国家 / 想测试第二市场</td>
             <td>这个市场值得进入吗？如何确定机会？</td>
             <td>消费者、SKU、价格、渠道与投入决策</td>
           </tr>
           <tr>
-            <th>ENTER<br>精准进入</th>
+            <th>精准进入</th>
             <td>已完成验证需进入 / 已进入但迟迟没有打开渠道</td>
             <td>如何找到正确的进入和发展路径，实现有效落地并获得商业结果？</td>
             <td>本地化方案、渠道机会、商业合作与市场启动</td>
           </tr>
           <tr>
-            <th>GROW<br>本地增长</th>
+            <th>本地增长</th>
             <td>已进入 / 已有销售 / 准备长期投入</td>
             <td>如何持续增长并最大程度降低运营成本？</td>
             <td>本地运营、渠道维护、营销增长与长期市场能力</td>
@@ -974,7 +995,7 @@
           </div>
         </div>
         <div class="punch">我们拒绝"纸上谈兵"的市场报告。<br>
-          与其只依赖行业数据预测市场，我们帮助品牌把产品<b>真正放进当地市场</b>——通过 <b>真实消费者 × 真实场景 × 真实销售 × 真实买手反馈</b>，找到进入市场前最重要的答案。</div>
+          与其只依赖行业数据预测市场，我们帮助品牌把产品<b>真正放进当地市场</b>，通过 <b>真实消费者 × 真实场景 × 真实销售 × 真实买手反馈</b>，找到进入市场前最重要的答案。</div>
       </div>
       <figure class="figimg">
         <img src="assets/fair-grid.png" alt="海外展会与市集现场实拍">
@@ -986,7 +1007,7 @@
 
       <!-- Phase A -->
       <div class="phase p-pre">
-        <div class="ph-h"><span class="ph-ic">🔍</span><span class="ph-t">Phase A｜进入前市场扫描</span><span class="ph-en">Market Scan</span></div>
+        <div class="ph-h"><span class="ph-ic">🔍</span><span class="ph-t">A｜进入前市场扫描</span><span class="ph-en">Market Scan</span></div>
         <ul class="ph-list">
           <li><b>竞品格局：</b>目标市场里已经有谁、卖什么、怎么卖。</li>
           <li><b>产品机会：</b>哪些品类与卖点存在空位。</li>
@@ -1000,7 +1021,7 @@
 
       <!-- Phase B -->
       <div class="phase p-mid">
-        <div class="ph-h"><span class="ph-ic">🛍️</span><span class="ph-t">Phase B｜真实市场测试</span><span class="ph-en">Real Market Testing</span></div>
+        <div class="ph-h"><span class="ph-ic">🛍️</span><span class="ph-t">B｜真实市场测试</span><span class="ph-en">Real Market Testing</span></div>
         <div class="txtimg port" style="margin:0 22px 6px;">
         <ul class="ph-list" style="padding:15px 0 0;">
           <li>不是问消费者"你会不会买"，而是<b>让产品真正进入消费环境</b>。根据不同验证目标，我们匹配对应场景：</li>
@@ -1012,21 +1033,19 @@
         </ul>
         <figure class="figimg">
           <img src="assets/buyer-onsite.png" alt="买手与品牌主理人现场对接">
-          <figcaption>品牌主理人在现场 · 买手当场上手、当场给反馈</figcaption>
+          <figcaption>品牌主理人在现场 · 买手当场给反馈</figcaption>
         </figure>
         </div>
         <div class="live" style="margin-bottom:12px;">
           <span class="lv-lab">★ 双线验证</span>
-          <span class="lv-en">Consumer Validation × Channel Feedback</span>
-          <p>同一场测试，同时跑<b>消费者端</b>与<b>渠道端</b>两条线——既知道普通人买不买，也知道买手要不要。</p>
+          <span class="lv-en"><span style="color: rgb(74, 64, 52); font-size: 13.5px; text-align: justify; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">同一场测试，同时跑</span><b style="font-size: 13.5px; text-align: justify; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">消费者端</b><span style="color: rgb(74, 64, 52); font-size: 13.5px; text-align: justify; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">与</span><b style="font-size: 13.5px; text-align: justify; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">渠道端</b><span style="color: rgb(74, 64, 52); font-size: 13.5px; text-align: justify; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">两条线——既知道普通人买不买，也知道买手要不要。</span></span>
         </div>
         <div class="duo">
           <div class="side">
             <h4>Consumer Validation｜消费者端</h4>
             <span class="sen">我们观察和记录</span>
             <ul>
-              <li>谁会停留</li>
-              <li>谁真正感兴趣</li>
+              <li>谁会停留、真正感兴趣</li>
               <li>哪些 SKU 表现最好</li>
               <li>哪个价格更容易成交</li>
               <li>为什么购买 / 为什么没有购买</li>
@@ -1055,9 +1074,9 @@
 
       <!-- Phase C -->
       <div class="phase p-post">
-        <div class="ph-h"><span class="ph-ic">📊</span><span class="ph-t">Phase C｜验证决策</span><span class="ph-en">Validation Decision</span></div>
+        <div class="ph-h"><span class="ph-ic">📊</span><span class="ph-t">C｜验证决策</span><span class="ph-en">Validation Decision</span></div>
         <ul class="ph-list">
-          <li>测试跑完，交付一份 <b>Market Validation Report 市场验证报告</b>——回答下面五个必须拍板的问题。</li>
+          <li>测试跑完，交付一份 <b>市场验证报告</b></li>
         </ul>
         <div style="padding:0 22px 18px;">
           <div class="qlist">
@@ -1118,7 +1137,7 @@
       <div class="g-cards">
         <div class="gc">
           <div class="gc-no">01</div>
-          <h4>GMA Pre-Market Exchange<br>中外品牌交流会</h4>
+          <h4>GMA&nbsp;中外品牌交流会</h4>
           <p>中外品牌长期交流与资源链接平台，促进双方<b>经验交流、联合曝光、渠道互通</b>与合作机会。</p>
         </div>
         <div class="gc">
@@ -1136,7 +1155,7 @@
 
 
     <div class="subh">🤝 合作形式</div>
-    <p class="lead" style="margin-top:6px;"><b>1. 直接进入本地场景验证</b>｜市集 / 展会 / Festival / Pop-up / Brand Event</p>
+    <p class="lead" style="margin-top:6px;"><b>1. 直接进入本地场景验证</b></p>
     <div class="cmp-scroll">
       <table class="cmp">
         <thead>
@@ -1253,9 +1272,7 @@
 
     <div class="proc">
       <div class="step">
-        <h4>STEP 01｜LOCALIZATION　进入前本地化适配</h4>
-        <ul>
-          <li>根据市场验证结果，进一步调整：</li>
+        <h4>STEP 01｜LOCALIZATION　进入前本地化适配</h4><h4><span style="color: rgb(74, 64, 52); font-size: 13.5px; background-color: initial; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">根据市场验证结果，进一步调整：</span></h4><ul>
           <li><b>产品｜</b>核心 SKU、产品组合、规格与包装</li>
           <li><b>价格｜</b>终端价格与渠道利润结构</li>
           <li><b>品牌｜</b>品牌故事、核心卖点与视觉表达</li>
@@ -1264,9 +1281,7 @@
         </ul>
       </div>
       <div class="step">
-        <h4>STEP 02｜CHANNEL MATCH　精准渠道匹配</h4>
-        <ul>
-          <li>基于 <b>品牌定位 × 价格带 × 目标客群 × 产品品类 × 渠道属性</b> 精准匹配：</li>
+        <h4>STEP 02｜CHANNEL MATCH　精准渠道匹配</h4><h4><span style="color: rgb(74, 64, 52); font-size: 13.5px; background-color: initial; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">基于 </span><b style="font-size: 13.5px; background-color: initial; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">品牌定位 × 价格带 × 目标客群 × 产品品类 × 渠道属性</b><span style="color: rgb(74, 64, 52); font-size: 13.5px; background-color: initial; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;"> 精准匹配：</span></h4><ul>
           <li>精品买手店</li>
           <li>Lifestyle Store</li>
           <li>百货及零售集团</li>
@@ -1295,9 +1310,7 @@
         </div>
       </div>
       <div class="step">
-        <h4>STEP 04｜MARKET LANDING　选择适合品牌的进入方式</h4>
-        <ul>
-          <li>根据 <b>品牌阶段 × 市场机会 × 预算 × 渠道条件</b>，设计轻量化进入路径：</li>
+        <h4>STEP 04｜MARKET LANDING　选择适合品牌的进入方式</h4><h4><span style="color: rgb(74, 64, 52); font-size: 13.5px; background-color: initial; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">根据 </span><b style="font-size: 13.5px; background-color: initial; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">品牌阶段 × 市场机会 × 预算 × 渠道条件</b><span style="color: rgb(74, 64, 52); font-size: 13.5px; background-color: initial; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">，设计轻量化进入路径：</span></h4><ul>
           <li>批发 / 采购订单（PO）</li>
           <li>寄售 / 零售入驻</li>
           <li>阶段性 Pop-up</li>
@@ -1306,9 +1319,7 @@
         </ul>
       </div>
       <div class="step">
-        <h4>STEP 05｜LAUNCH ACTIVATION　从"进入市场"到"产生销售"</h4>
-        <ul>
-          <li>根据项目需求，联动 <b>本地内容 × KOL / PR × 广告 × 线下活动 × 独立站</b></li>
+        <h4>STEP 05｜LAUNCH ACTIVATION　从"进入市场"到"产生销售"</h4><h4><span style="color: rgb(74, 64, 52); font-size: 13.5px; background-color: initial; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">根据项目需求，联动 </span><b style="font-size: 13.5px; background-color: initial; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">本地内容 × KOL / PR × 广告 × 线下活动 × 独立站</b></h4><ul>
           <li>形成：<b>触达 → 认知 → 转化 → 复购</b></li>
           <li>让渠道进入不止停留在"上架"，而是逐步形成<b>真实销售与本地品牌声量</b>。</li>
         </ul>
@@ -1325,7 +1336,7 @@
       <li><b>本地商业伙伴连接</b></li>
       <li><b>后续市场增长建议</b></li>
     </ul>
-    <div class="punch" style="margin-top:16px;">ENTER 的核心：<b>VALIDATE 帮你找到"值得进入的机会"，ENTER 帮你把机会变成真实的市场进入与商业合作。</b></div>
+    <div class="punch" style="margin-top:16px;">ENTER 的核心：<b>VALIDATE 帮你找"值得进入的机会"，ENTER 帮你把机会变成真实市场进入与商业合作。</b></div>
 
     <div class="coop">
       <div class="ch">合作形式</div>
@@ -1397,7 +1408,7 @@
         <thead>
           <tr>
             <th class="w1c" style="width:44%;">高成本 / 高风险</th>
-            <th class="w3c">我们的轻量化解法（一站式托管交付）</th>
+            <th class="w3c">我们的轻量化解法（一站式交付）</th>
           </tr>
         </thead>
         <tbody>
@@ -1463,7 +1474,7 @@
 
   <!-- ════════════════════════ 联系我们 / CTA ════════════════════════ -->
   <section class="cta">
-    <h2>无论你在出海的哪一个阶段，<em>We Are Ready to Help</em></h2>
+    <h2>无论你在出海的哪一个阶段</h2><h2><em>We Are Ready to Help</em></h2>
 
     <div class="offer">
       <div class="ot">你是不是也在问这些问题？</div>
@@ -1474,7 +1485,7 @@
       </ul>
     </div>
 
-    <p>只要有想法，就值得一次深度对话。不论你是企业主、创业者还是品牌创始人，欢迎与我们联系——聊聊你的品牌，以及如何用更低风险的方式，拿到属于你的海外答案。</p>
+    <p>只要有想法，就值得一次深度对话。不论你是企业主还是品牌创始人，欢迎与我们联系，聊聊你的品牌，以及如何用更低风险的方式，拿到属于你的海外答案。</p>
 
     <div class="book-tt">📩 与我们联系｜Get in Touch</div>
 
@@ -1493,8 +1504,7 @@
   </section>
 
   <footer>
-    Global Market Accelerator · 业务介绍总册 · 2026.08 第四版
-  </footer>
+    Global Market Accelerator&nbsp;</footer>
 
 </div>
 
@@ -1504,7 +1514,7 @@
   // 用 file:// 直接打开 → 退回浏览器本地缓存（localStorage），可点「导出 HTML」
   (function(){
     var KEY = 'gma_master_edit_v1';
-    var BUILD = '20260818-172341';   // 文件重新生成即变，旧缓存自动作废
+    var BUILD = '20260819-102659';   // 文件重新生成即变，旧缓存自动作废
     var LOCALHOST = (location.hostname === '127.0.0.1' || location.hostname === 'localhost');
     var SERVER = LOCALHOST && (location.protocol === 'http:' || location.protocol === 'https:');
     var wrap = document.querySelector('.wrap');
@@ -1518,11 +1528,11 @@
     btnEdit.parentNode.insertBefore(stat, btnReset);
     function pad(n){return (n<10?'0':'')+n;}
     function setStat(s, msg){
-      if (!SERVER){ stat.textContent=''; return; }
+      if (!SERVER && !ghToken()){ stat.textContent=''; return; }
       if (s==='saving') stat.textContent='保存中…';
       else if (s==='ok'){ var d=new Date(); stat.textContent='✓ 已保存 '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()); }
       else if (s==='err') stat.textContent='✗ 保存失败'+(msg?'：'+msg:'');
-      else stat.textContent='● 自动保存已开';
+      else stat.textContent = ghToken() ? '● 自动发布已开' : '● 自动保存已开';
     }
 
     // file:// 模式才从浏览器缓存恢复（服务器模式下文件本身就是最新版）
@@ -1543,7 +1553,11 @@
       var w = clone.querySelector('.wrap');
       if (w){ w.innerHTML = wrap.innerHTML; w.removeAttribute('contenteditable'); }
       var b = clone.querySelector('body'); if (b) b.classList.remove('editing');
-      var st = clone.querySelector('span[style*="min-width:74px"]'); if (st && st.parentNode) st.parentNode.removeChild(st);
+      var st = clone.querySelector('span[style*="min-width"]'); if (st && st.parentNode) st.parentNode.removeChild(st);
+      var cb = clone.querySelector('#cloudbox'); if (cb){ cb.classList.remove('on');
+        var ci = cb.querySelector('#ghTok'); if (ci) ci.removeAttribute('value');
+        var cm = cb.querySelector('#cbMsg'); if (cm){ cm.textContent=''; cm.className='cb-msg'; } }
+      var bc = clone.querySelector('#btnCloud'); if (bc){ bc.textContent='☁️ 连接 GitHub'; bc.classList.remove('on'); }
       // 拖拽把手不写入文件（列宽 inline 样式会保留）
       var rs = clone.querySelectorAll('.col-resizer');
       for (var i=0;i<rs.length;i++){ if (rs[i].parentNode) rs[i].parentNode.removeChild(rs[i]); }
@@ -1570,7 +1584,10 @@
       document.body.classList.toggle('editing', editing);
       btnEdit.textContent = editing ? '✅ 完成编辑' : '✏️ 编辑文字';
       btnEdit.classList.toggle('on', editing);
-      if (!editing){ if (SERVER){ clearTimeout(saveTimer); serverSave(); } else localSave(); }
+      if (!editing){
+        if (SERVER){ clearTimeout(saveTimer); serverSave(); } else localSave();
+        if (ghToken()){ clearTimeout(ghTimer); ghPublish(); }   /* 点完成编辑立即发布 */
+      }
     };
 
     window.resetEdit = function(){
@@ -1582,6 +1599,7 @@
     wrap.addEventListener('input', function(){
       if (!editing) return;
       if (SERVER) scheduleSave(); else localSave();
+      ghSchedule();
     });
     window.addEventListener('beforeunload', function(){
       if (!editing) return;
@@ -1632,6 +1650,106 @@
         });
       });
     }
+
+
+    /* ===== 自动发布到 GitHub（仅持有 Token 的所有者可用）=====
+       静态托管没有后端，要把编辑存回线上只能由浏览器直接调 GitHub API。
+       Token 只存在本机 localStorage，不写进文件、不进仓库；访客没有 Token，
+       行为完全不变（改动只存在自己浏览器 + 可导出 HTML / 打印 PDF）。 */
+    var GH = { owner:'Yitong723', repo:'gma-handbook', path:'index.html', branch:'main' };
+    var GH_KEY = 'gma_gh_token';
+    var ghTimer = null, ghBusy = false, ghPending = false;
+
+    function ghToken(){ try { return localStorage.getItem(GH_KEY) || ''; } catch(e){ return ''; } }
+    function cbMsg(txt, cls){
+      var el = document.getElementById('cbMsg');
+      if (el){ el.textContent = txt; el.className = 'cb-msg' + (cls ? ' ' + cls : ''); }
+    }
+    function ghSyncBtn(){
+      var b = document.getElementById('btnCloud');
+      if (!b) return;
+      b.textContent = ghToken() ? '☁️ 自动发布已开' : '☁️ 连接 GitHub';
+      b.classList.toggle('on', !!ghToken());
+    }
+
+    window.toggleCloud = function(){
+      document.getElementById('cloudbox').classList.toggle('on');
+      if (ghToken()) cbMsg('已连接。改完文字会自动发布，线上约 1 分钟生效。', 'ok');
+    };
+    window.cloudConnect = function(){
+      var inp = document.getElementById('ghTok');
+      var t = (inp.value || '').trim();
+      if (!t){ cbMsg('请先粘贴 Token。', 'err'); return; }
+      cbMsg('正在验证…');
+      fetch('https://api.github.com/repos/' + GH.owner + '/' + GH.repo,
+            { headers:{ Authorization:'Bearer ' + t, Accept:'application/vnd.github+json' } })
+        .then(function(r){
+          if (!r.ok) throw new Error('HTTP ' + r.status + (r.status===404 ? '（Token 没有这个仓库的权限）' : ''));
+          try { localStorage.setItem(GH_KEY, t); } catch(e){}
+          inp.value = '';
+          ghSyncBtn();
+          cbMsg('连接成功。之后每次改动会自动发布到线上。', 'ok');
+        })
+        .catch(function(e){ cbMsg('连接失败：' + e.message, 'err'); });
+    };
+    window.cloudClear = function(){
+      try { localStorage.removeItem(GH_KEY); } catch(e){}
+      var inp = document.getElementById('ghTok'); if (inp) inp.value = '';
+      ghSyncBtn();
+      cbMsg('已断开，Token 已从本机清除。', 'ok');
+    };
+
+    /* 大文件不能用 String.fromCharCode(...arr)，会爆栈；分块拼 */
+    function utf8ToB64(str){
+      var bytes = new TextEncoder().encode(str), bin = '', CH = 0x8000;
+      for (var i = 0; i < bytes.length; i += CH){
+        bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
+      }
+      return btoa(bin);
+    }
+
+    function ghPut(retry){
+      var t = ghToken();
+      if (!t) return Promise.resolve();
+      var api = 'https://api.github.com/repos/' + GH.owner + '/' + GH.repo + '/contents/' + GH.path;
+      var hd = { Authorization:'Bearer ' + t, Accept:'application/vnd.github+json',
+                 'Content-Type':'application/json' };
+      var body = utf8ToB64(buildHTML());
+      return fetch(api + '?ref=' + GH.branch + '&t=' + Date.now(), { headers:hd, cache:'no-store' })
+        .then(function(r){ return r.ok ? r.json() : Promise.reject(new Error('读取失败 HTTP ' + r.status)); })
+        .then(function(meta){
+          return fetch(api, { method:'PUT', headers:hd, body: JSON.stringify({
+            message:'在线编辑更新总册内容', content: body, sha: meta.sha, branch: GH.branch }) });
+        })
+        .then(function(r){
+          if (r.status === 409 && !retry) return ghPut(true);   /* sha 过期，重取一次 */
+          if (!r.ok) return r.json().then(function(j){
+            throw new Error('HTTP ' + r.status + (j && j.message ? '：' + j.message : ''));
+          });
+          setStat('ok');
+          cbMsg('已发布，线上约 1 分钟后生效。', 'ok');
+        });
+    }
+
+    function ghPublish(){
+      if (!ghToken()) return;
+      if (ghBusy){ ghPending = true; return; }
+      ghBusy = true; setStat('saving');
+      ghPut(false)
+        .catch(function(e){ setStat('err', e.message); cbMsg('发布失败：' + e.message, 'err'); })
+        .then(function(){
+          ghBusy = false;
+          if (ghPending){ ghPending = false; ghPublish(); }
+        });
+    }
+    function ghSchedule(){
+      if (!ghToken()) return;
+      clearTimeout(ghTimer);
+      setStat('saving');
+      ghTimer = setTimeout(ghPublish, 4000);   /* 停手 4 秒后提交，避免每敲一个字一次 commit */
+    }
+    ghSyncBtn();
+
     setupColResize();
 
     // 活动数据条：4 列可拖拽调宽（最后一列自适应填满）
