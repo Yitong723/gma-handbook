@@ -680,7 +680,18 @@
     color:var(--ink) !important; box-shadow:var(--shadow) !important;}
   .punch b{color:var(--accent-deep) !important;}
 
-  /* 「连接 GitHub」面板 */
+  /* 共享内容更新提示 */
+  .freshbar{display:none; position:sticky; top:44px; z-index:48; max-width:880px;
+    margin:10px auto 0; background:var(--keep-soft); border:1px solid var(--keep-line);
+    color:#3a5631; border-radius:10px; padding:9px 14px; font-size:12.5px;}
+  .freshbar.on{display:block;}
+  .freshbar b{color:#2f4728;}
+  .freshbar button{margin-left:10px; font-family:var(--sans); cursor:pointer; border:none;
+    font-size:12px; font-weight:600; color:#fff; background:var(--keep); border-radius:7px;
+    padding:5px 12px;}
+  @media print{ .freshbar{display:none !important;} }
+
+  /* 「协作编辑」面板 */
   .cloudbox{display:none; position:sticky; top:44px; z-index:49; max-width:880px;
     margin:10px auto 0; background:var(--paper); border:1px solid var(--line);
     border-radius:14px; padding:16px 18px; box-shadow:var(--shadow-lift);}
@@ -689,6 +700,9 @@
     margin-bottom:6px;}
   .cloudbox p{font-size:12.5px; line-height:1.7; color:var(--ink-soft); margin-bottom:10px;}
   .cloudbox p b{color:var(--accent-deep);}
+  .cloudbox .cb-row{display:flex; gap:8px;}
+  .cloudbox .cb-row input{flex:1;}
+  @media (max-width:680px){ .cloudbox .cb-row{flex-direction:column;} }
   .cloudbox input{width:100%; font-family:var(--sans); font-size:13px; padding:9px 12px;
     border:1px solid var(--line); border-radius:9px; background:#fffdf8; color:var(--ink);}
   .cloudbox .cb-btns{display:flex; gap:8px; margin-top:10px;}
@@ -835,20 +849,26 @@
   <span class="tb-btns">
     <button id="btnReset" class="ghost" onclick="resetEdit()" style="display:none;">↺ 还原默认</button>
     <button id="btnExport" class="ghost" onclick="exportEdited()">⬇️ 导出 HTML</button>
-    <button id="btnCloud" class="ghost" onclick="toggleCloud()">☁️ 连接 GitHub</button>
+    <button id="btnCloud" class="ghost" onclick="toggleCloud()">👥 协作编辑</button>
     <button id="btnEdit" onclick="toggleEdit()">✏️ 编辑文字</button>
     <button onclick="window.print()">⤓ 保存 / 打印 PDF</button>
   </span>
 </div>
 
+<div class="freshbar" id="freshbar"></div>
+
 <div class="cloudbox" id="cloudbox">
-  <div class="cb-t">把修改自动发布到线上</div>
-  <p>连接后，你每次改完文字会<b>自动提交到 GitHub</b>，线上约 1 分钟后生效，别人刷新就能看到新版本。<br>
-     Token 只存在<b>这台电脑的浏览器</b>里，不会写进网页文件、也不会提交到仓库。别人打开这个网址看不到、也用不了。</p>
-  <input type="password" id="ghTok" placeholder="粘贴 GitHub Token（github_pat_… 或 ghp_…）" autocomplete="off">
+  <div class="cb-t">多人协作编辑</div>
+  <p>输入<b>编辑口令</b>和你的名字后，你的每次改动会<b>保存到共享版本</b>，其他人刷新页面就能看到；
+     他们改的你也会看到。没有口令的人只能改自己浏览器里的副本，动不了共享版本。</p>
+  <div class="cb-row">
+    <input type="text" id="edName" placeholder="你的名字（显示给同伴看）" autocomplete="off">
+    <input type="password" id="edPass" placeholder="编辑口令" autocomplete="off">
+  </div>
   <div class="cb-btns">
-    <button onclick="cloudConnect()">连接</button>
-    <button class="ghost" onclick="cloudClear()">断开并清除 Token</button>
+    <button onclick="cloudConnect()">开始协作编辑</button>
+    <button class="ghost" onclick="cloudClear()">退出协作</button>
+    <button class="ghost" onclick="pullShared(true)">加载最新版</button>
   </div>
   <div class="cb-msg" id="cbMsg"></div>
 </div>
@@ -1514,7 +1534,7 @@
   // 用 file:// 直接打开 → 退回浏览器本地缓存（localStorage），可点「导出 HTML」
   (function(){
     var KEY = 'gma_master_edit_v1';
-    var BUILD = '20260819-102659';   // 文件重新生成即变，旧缓存自动作废
+    var BUILD = '20260819-104000';   // 文件重新生成即变，旧缓存自动作废
     var LOCALHOST = (location.hostname === '127.0.0.1' || location.hostname === 'localhost');
     var SERVER = LOCALHOST && (location.protocol === 'http:' || location.protocol === 'https:');
     var wrap = document.querySelector('.wrap');
@@ -1532,7 +1552,7 @@
       if (s==='saving') stat.textContent='保存中…';
       else if (s==='ok'){ var d=new Date(); stat.textContent='✓ 已保存 '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()); }
       else if (s==='err') stat.textContent='✗ 保存失败'+(msg?'：'+msg:'');
-      else stat.textContent = ghToken() ? '● 自动发布已开' : '● 自动保存已开';
+      else stat.textContent = ghToken() ? '● 协作自动保存' : '● 自动保存已开';
     }
 
     // file:// 模式才从浏览器缓存恢复（服务器模式下文件本身就是最新版）
@@ -1555,9 +1575,11 @@
       var b = clone.querySelector('body'); if (b) b.classList.remove('editing');
       var st = clone.querySelector('span[style*="min-width"]'); if (st && st.parentNode) st.parentNode.removeChild(st);
       var cb = clone.querySelector('#cloudbox'); if (cb){ cb.classList.remove('on');
-        var ci = cb.querySelector('#ghTok'); if (ci) ci.removeAttribute('value');
+        var ci = cb.querySelector('#edPass'); if (ci) ci.removeAttribute('value');
         var cm = cb.querySelector('#cbMsg'); if (cm){ cm.textContent=''; cm.className='cb-msg'; } }
-      var bc = clone.querySelector('#btnCloud'); if (bc){ bc.textContent='☁️ 连接 GitHub'; bc.classList.remove('on'); }
+      var bc = clone.querySelector('#btnCloud'); if (bc){ bc.textContent='👥 协作编辑'; bc.classList.remove('on'); }
+      var fb = clone.querySelector('#freshbar'); if (fb){ fb.classList.remove('on'); fb.innerHTML=''; }
+      var np = clone.querySelector('#edName'); if (np) np.removeAttribute('value');
       // 拖拽把手不写入文件（列宽 inline 样式会保留）
       var rs = clone.querySelectorAll('.col-resizer');
       for (var i=0;i<rs.length;i++){ if (rs[i].parentNode) rs[i].parentNode.removeChild(rs[i]); }
@@ -1652,102 +1674,137 @@
     }
 
 
-    /* ===== 自动发布到 GitHub（仅持有 Token 的所有者可用）=====
-       静态托管没有后端，要把编辑存回线上只能由浏览器直接调 GitHub API。
-       Token 只存在本机 localStorage，不写进文件、不进仓库；访客没有 Token，
-       行为完全不变（改动只存在自己浏览器 + 可导出 HTML / 打印 PDF）。 */
-    var GH = { owner:'Yitong723', repo:'gma-handbook', path:'index.html', branch:'main' };
-    var GH_KEY = 'gma_gh_token';
-    var ghTimer = null, ghBusy = false, ghPending = false;
+    /* ===== 多人协作：共享正文存在服务端，口令控制写入 =====
+       GET  /api/content  → 取最新共享正文（204 表示还没人改过，用页面自带原稿）
+       PUT  /api/content  → 带口令保存；服务端比对 baseAt，防止静默覆盖别人的改动
+       没口令的访客：一切照旧，改动只存自己浏览器，可导出 HTML / 打印 PDF。 */
+    var API = '/api/content';
+    var PASS_KEY = 'gma_edit_pass', NAME_KEY = 'gma_edit_name';
+    var shareAt = 0;            /* 当前页面内容对应的服务端版本时间 */
+    var shareTimer = null, sharePolling = null, shareBusy = false, sharePending = false;
 
-    function ghToken(){ try { return localStorage.getItem(GH_KEY) || ''; } catch(e){ return ''; } }
+    function edPass(){ try { return localStorage.getItem(PASS_KEY) || ''; } catch(e){ return ''; } }
+    function edName(){ try { return localStorage.getItem(NAME_KEY) || ''; } catch(e){ return ''; } }
     function cbMsg(txt, cls){
       var el = document.getElementById('cbMsg');
       if (el){ el.textContent = txt; el.className = 'cb-msg' + (cls ? ' ' + cls : ''); }
     }
+    function fmtTime(ms){
+      var d = new Date(ms);
+      return pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+    }
     function ghSyncBtn(){
       var b = document.getElementById('btnCloud');
       if (!b) return;
-      b.textContent = ghToken() ? '☁️ 自动发布已开' : '☁️ 连接 GitHub';
-      b.classList.toggle('on', !!ghToken());
+      b.textContent = edPass() ? '👥 协作中' + (edName() ? '：' + edName() : '') : '👥 协作编辑';
+      b.classList.toggle('on', !!edPass());
     }
+    function ghToken(){ return edPass(); }   /* 顶栏状态灯沿用同一判断 */
 
     window.toggleCloud = function(){
-      document.getElementById('cloudbox').classList.toggle('on');
-      if (ghToken()) cbMsg('已连接。改完文字会自动发布，线上约 1 分钟生效。', 'ok');
+      var box = document.getElementById('cloudbox');
+      box.classList.toggle('on');
+      if (box.classList.contains('on')){
+        var n = document.getElementById('edName'); if (n && !n.value) n.value = edName();
+        if (edPass()) cbMsg('已在协作中。改完 3 秒自动保存，其他人刷新即可看到。', 'ok');
+      }
     };
     window.cloudConnect = function(){
-      var inp = document.getElementById('ghTok');
-      var t = (inp.value || '').trim();
-      if (!t){ cbMsg('请先粘贴 Token。', 'err'); return; }
-      cbMsg('正在验证…');
-      fetch('https://api.github.com/repos/' + GH.owner + '/' + GH.repo,
-            { headers:{ Authorization:'Bearer ' + t, Accept:'application/vnd.github+json' } })
-        .then(function(r){
-          if (!r.ok) throw new Error('HTTP ' + r.status + (r.status===404 ? '（Token 没有这个仓库的权限）' : ''));
-          try { localStorage.setItem(GH_KEY, t); } catch(e){}
-          inp.value = '';
-          ghSyncBtn();
-          cbMsg('连接成功。之后每次改动会自动发布到线上。', 'ok');
-        })
-        .catch(function(e){ cbMsg('连接失败：' + e.message, 'err'); });
+      var nm = (document.getElementById('edName').value || '').trim();
+      var pw = (document.getElementById('edPass').value || '').trim();
+      if (!pw){ cbMsg('请输入编辑口令。', 'err'); return; }
+      if (!nm){ cbMsg('请填一个名字，方便同伴知道是谁改的。', 'err'); return; }
+      cbMsg('正在验证口令…');
+      /* 用一次真实保存来验证口令：内容不变，只确认权限 */
+      putShared(pw, nm, true).then(function(ok){
+        if (!ok) return;
+        try { localStorage.setItem(PASS_KEY, pw); localStorage.setItem(NAME_KEY, nm); } catch(e){}
+        document.getElementById('edPass').value = '';
+        ghSyncBtn(); setStat('idle');
+        cbMsg('口令正确，已进入协作模式。改完 3 秒自动保存。', 'ok');
+      });
     };
     window.cloudClear = function(){
-      try { localStorage.removeItem(GH_KEY); } catch(e){}
-      var inp = document.getElementById('ghTok'); if (inp) inp.value = '';
-      ghSyncBtn();
-      cbMsg('已断开，Token 已从本机清除。', 'ok');
+      try { localStorage.removeItem(PASS_KEY); localStorage.removeItem(NAME_KEY); } catch(e){}
+      document.getElementById('edPass').value = '';
+      ghSyncBtn(); setStat('idle');
+      cbMsg('已退出协作。之后的改动只存在你自己的浏览器里。', 'ok');
     };
 
-    /* 大文件不能用 String.fromCharCode(...arr)，会爆栈；分块拼 */
-    function utf8ToB64(str){
-      var bytes = new TextEncoder().encode(str), bin = '', CH = 0x8000;
-      for (var i = 0; i < bytes.length; i += CH){
-        bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
-      }
-      return btoa(bin);
-    }
-
-    function ghPut(retry){
-      var t = ghToken();
-      if (!t) return Promise.resolve();
-      var api = 'https://api.github.com/repos/' + GH.owner + '/' + GH.repo + '/contents/' + GH.path;
-      var hd = { Authorization:'Bearer ' + t, Accept:'application/vnd.github+json',
-                 'Content-Type':'application/json' };
-      var body = utf8ToB64(buildHTML());
-      return fetch(api + '?ref=' + GH.branch + '&t=' + Date.now(), { headers:hd, cache:'no-store' })
-        .then(function(r){ return r.ok ? r.json() : Promise.reject(new Error('读取失败 HTTP ' + r.status)); })
-        .then(function(meta){
-          return fetch(api, { method:'PUT', headers:hd, body: JSON.stringify({
-            message:'在线编辑更新总册内容', content: body, sha: meta.sha, branch: GH.branch }) });
-        })
-        .then(function(r){
-          if (r.status === 409 && !retry) return ghPut(true);   /* sha 过期，重取一次 */
-          if (!r.ok) return r.json().then(function(j){
-            throw new Error('HTTP ' + r.status + (j && j.message ? '：' + j.message : ''));
-          });
+    function putShared(pw, nm, quiet){
+      return fetch(API, {
+        method:'PUT',
+        headers:{ 'Content-Type':'application/json', 'x-edit-pass': pw },
+        body: JSON.stringify({ html: wrap.innerHTML, by: nm, baseAt: shareAt })
+      }).then(function(r){
+        return r.json().catch(function(){ return {}; }).then(function(j){
+          if (r.status === 401){ cbMsg('口令不对。', 'err'); setStat('err','口令不对'); return false; }
+          if (r.status === 409){
+            showFresh(j.at, j.by, true);
+            cbMsg('有人在你之前改过，已阻止覆盖。点「加载最新版」看他的版本。', 'err');
+            setStat('err','有更新未合并'); return false;
+          }
+          if (!r.ok){ cbMsg('保存失败：' + (j.error || ('HTTP ' + r.status)), 'err');
+                      setStat('err', j.error || r.status); return false; }
+          shareAt = j.at || Date.now();
           setStat('ok');
-          cbMsg('已发布，线上约 1 分钟后生效。', 'ok');
+          if (!quiet) cbMsg('已保存到共享版本，其他人刷新就能看到。', 'ok');
+          return true;
         });
+      }).catch(function(e){
+        cbMsg('保存失败：' + e.message, 'err'); setStat('err', e.message); return false;
+      });
     }
 
     function ghPublish(){
-      if (!ghToken()) return;
-      if (ghBusy){ ghPending = true; return; }
-      ghBusy = true; setStat('saving');
-      ghPut(false)
-        .catch(function(e){ setStat('err', e.message); cbMsg('发布失败：' + e.message, 'err'); })
-        .then(function(){
-          ghBusy = false;
-          if (ghPending){ ghPending = false; ghPublish(); }
-        });
+      if (!edPass()) return;
+      if (shareBusy){ sharePending = true; return; }
+      shareBusy = true; setStat('saving');
+      putShared(edPass(), edName(), true).then(function(){
+        shareBusy = false;
+        if (sharePending){ sharePending = false; ghPublish(); }
+      });
     }
     function ghSchedule(){
-      if (!ghToken()) return;
-      clearTimeout(ghTimer);
-      setStat('saving');
-      ghTimer = setTimeout(ghPublish, 4000);   /* 停手 4 秒后提交，避免每敲一个字一次 commit */
+      if (!edPass()) return;
+      clearTimeout(shareTimer); setStat('saving');
+      shareTimer = setTimeout(ghPublish, 3000);
     }
+
+    /* 顶部提示条：别人改过了 */
+    function showFresh(at, by, force){
+      var bar = document.getElementById('freshbar');
+      if (!bar) return;
+      bar.innerHTML = '📝 共享版本已更新' + (by ? '（<b>' + by + '</b>' : '（') +
+        ' · ' + fmtTime(at) + '）' +
+        '<button onclick="pullShared(true)">加载最新版</button>';
+      bar.classList.add('on');
+      if (!force) setTimeout(function(){ bar.classList.remove('on'); }, 15000);
+    }
+
+    /* 拉取共享正文；show=true 时是用户主动点的，直接套用 */
+    window.pullShared = function(show){
+      return fetch(API + '?t=' + Date.now(), { cache:'no-store' })
+        .then(function(r){
+          if (r.status === 204) return null;             /* 还没人改过 */
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function(d){
+          if (!d || !d.html) return;
+          if (d.at === shareAt) { if (show) cbMsg('已经是最新版了。', 'ok'); return; }
+          if (editing && !show){ showFresh(d.at, d.by, true); return; }  /* 编辑中不打断 */
+          wrap.innerHTML = d.html;
+          shareAt = d.at;
+          document.getElementById('freshbar').classList.remove('on');
+          if (show) cbMsg('已加载 ' + (d.by ? d.by + ' 于 ' : '') + fmtTime(d.at) + ' 的版本。', 'ok');
+        })
+        .catch(function(e){ if (show) cbMsg('加载失败：' + e.message, 'err'); });
+    };
+
+    /* 打开页面先取共享版本；不在编辑时每 20 秒看一次有没有新的 */
+    pullShared(false);
+    sharePolling = setInterval(function(){ if (!editing) pullShared(false); }, 20000);
     ghSyncBtn();
 
     setupColResize();
