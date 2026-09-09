@@ -753,6 +753,15 @@
   .duo .side.b h4{color:#2c4e6b;}
   .duo .side.b li::before{background:#3f6b8c;}
   @media (max-width:680px){ .duo{grid-template-columns:1fr; margin-left:18px; margin-right:18px;} }
+  /* 双线验证：两张卡片 + 右侧现场配图并排 */
+  .duo-row{display:grid; grid-template-columns:minmax(0,1fr) 232px; gap:14px;
+    align-items:stretch; margin:2px 22px 18px;}
+  .duo-row .duo{margin:0;}
+  .duo-row .figimg.side-img{margin-top:0; display:flex; flex-direction:column;}
+  .duo-row .figimg.side-img img{width:100%; height:100%; max-height:none; object-fit:cover;}
+  .duo-row .figimg.side-img figcaption{margin-top:9px;}
+  @media (max-width:820px){ .duo-row{grid-template-columns:1fr;}
+    .duo-row .figimg.side-img img{height:auto; max-height:360px; width:auto;} }
 
   /* GO / ADJUST / STOP 决策三色 */
   /* 报告五问：不再用卡片，改无框清单，免得 phase 卡里再套一层框 */
@@ -1060,6 +1069,7 @@
           <span class="lv-lab">★ 双线验证</span>
           <span class="lv-en"><span style="color: rgb(74, 64, 52); font-size: 13.5px; text-align: justify; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">同一场测试，同时跑</span><b style="font-size: 13.5px; text-align: justify; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">消费者端</b><span style="color: rgb(74, 64, 52); font-size: 13.5px; text-align: justify; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">与</span><b style="font-size: 13.5px; text-align: justify; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">渠道端</b><span style="color: rgb(74, 64, 52); font-size: 13.5px; text-align: justify; font-family: &quot;Noto Sans SC&quot;, -apple-system, &quot;PingFang SC&quot;, sans-serif;">两条线——既知道普通人购不购买，也知道买手要不要。</span></span>
         </div>
+        <div class="duo-row">
         <div class="duo">
           <div class="side">
             <h4>Consumer Validation｜消费者端</h4>
@@ -1086,10 +1096,11 @@
             </ul>
           </div>
         </div>
-        <figure class="figimg">
+        <figure class="figimg side-img">
           <img src="assets/consumer-moments.png" alt="消费者在现场试用与咨询">
           <figcaption>谁停下来、谁上手、谁追问价格 —— 这些都会被记录成数据</figcaption>
         </figure>
+        </div>
       </div>
 
       <!-- Phase C -->
